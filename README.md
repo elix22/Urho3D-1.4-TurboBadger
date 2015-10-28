@@ -3,7 +3,7 @@
 This work is integration of TurboBadger to Urho3D engine.
 
 
-Urho3D-1.4-TurboBadger license
+license
 -----------------------------------------------------------------------------------
 Copyright (c) 2015 Lumak Software.
 
@@ -29,6 +29,7 @@ DEALINGS IN THE SOFTWARE.
 Turbo Badger author and license information:
 -----------------------------------------------------------------------------------
 Turbo Badger - Fast UI toolkit for hardware accelerated games & applications.
+
 Author: Emil Segerås Web: http://fiffigt.com
 
 Turbo Badger home: <https://github.com/fruxo/turbobadger>  
@@ -52,10 +53,6 @@ following restrictions:
 
   3. This notice may not be removed or altered from any source distribution.
 
------------------------------------------------------------------------------------
------------------------------------------------------------------------------------
-TurboBadger modified files:
-tb_config.h - changed TB_FILE_WINDOWS for windows
-tb_renderer_batcher.h - changed AddQuadInternal() func. to virtual
+
 
 
