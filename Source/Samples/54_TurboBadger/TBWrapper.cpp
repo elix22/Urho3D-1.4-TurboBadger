@@ -50,7 +50,7 @@ UTBBitmap::UTBBitmap(Context *_pContext, int _width, int _height)
     texture_->SetNumLevels( 1 );
     texture_->SetSize( width_, height_, Graphics::GetRGBAFormat() );
 
-    // test this - might need to change them
+    // set color and uv modes
     texture_->SetBorderColor( Color::TRANSPARENT );
     texture_->SetAddressMode( COORD_U, ADDRESS_WRAP );
     texture_->SetAddressMode( COORD_V, ADDRESS_WRAP );
@@ -133,8 +133,6 @@ void TUIRendererBatcher::Init(const String &_strDataPath)
 //=============================================================================
 void TUIRendererBatcher::LoadDefaultResources()
 {
-    //======================
-    // load default resources
     g_tb_lng->Load("resources/language/lng_en.tb.txt");
 
     // Load the default skin, and override skin that contains the graphics specific to the demo.
@@ -186,7 +184,7 @@ void TUIRendererBatcher::LoadDefaultResources()
         font->RenderGlyphs(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~ï∑Â‰ˆ≈ƒ÷");
     }
 
-	root_.SetSkinBg(TBIDC("background"));
+    root_.SetSkinBg(TBIDC("background"));
 
     TBWidgetsAnimationManager::Init();
 }
@@ -284,16 +282,16 @@ void TUIRendererBatcher::GetBatches(PODVector<UIBatch>& batches, PODVector<float
 {
     for ( unsigned i = 0; i < batches_.Size(); ++i )
     {
-        // add batch
-        UIBatch batch( this, batches_[ i ].blendMode_, batches_[ i ].scissor_, batches_[ i ].texture_, &vertexData_ );
-        unsigned beg = batches_[ i ].vertexStart_;
-        unsigned end = batches_[ i ].vertexEnd_;
+        // get batch
+        UIBatch &batch     = batches_[ i ];
+        unsigned beg       = batches_[ i ].vertexStart_;
+        unsigned end       = batches_[ i ].vertexEnd_;
         batch.vertexStart_ = vertexData.Size();
-        batch.vertexEnd_   = vertexData.Size() + (end-beg);
+        batch.vertexEnd_   = vertexData.Size() + (end - beg);
 
         // resize and copy
         vertexData.Resize( batch.vertexEnd_ );
-        memcpy( &vertexData[ batch.vertexStart_ ], &vertexData_[ beg ], (end-beg)*sizeof(float) );
+        memcpy( &vertexData[ batch.vertexStart_ ], &vertexData_[ beg ], (end - beg) * sizeof(float) );
 
         // store
         UIBatch::AddOrMerge( batch, batches );
@@ -343,7 +341,7 @@ void TUIRendererBatcher::AddQuadInternal(const TBRect &dst_rect, const TBRect &s
         m_vv = (float)(src_rect.y + src_rect.h) / bitmap_h;
     }
 
-    // change triangle draw order to clock-wise
+    // change triangle winding order to clock-wise
     Vertex *ver = batch.Reserve(this, 6);
     ver[0].x = (float) dst_rect.x;
     ver[0].y = (float) (dst_rect.y + dst_rect.h);
@@ -655,18 +653,14 @@ protected:
 //=============================================================================
 TBFile* TBFile::Open(const char *filename, TBFileMode )
 {
-    String strFilename = TUIRendererBatcher::Singleton().GetDataPath() + String( filename );
     UTBFile *pFile = new UTBFile( TUIRendererBatcher::Singleton().GetContext() );
+    String strFilename = TUIRendererBatcher::Singleton().GetDataPath() + String( filename );
 
     if ( !pFile->OpenFile( strFilename.CString() ) )
     {
         delete pFile;
-		pFile = NULL;
+        pFile = NULL;
     }
 
 	return pFile;
 }
-
-//=============================================================================
-//=============================================================================
-
