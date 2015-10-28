@@ -1,3 +1,13 @@
+-----------------------------------------------------------------------------------
+- change list
+-----------------------------------------------------------------------------------
+* tb_renderer_batcher.h - changed AddQuadInternal() func to virtual, added TBRect clipRect member variable in Batch class
+
+* test_tb_parser.cpp - changed TB_TEST_FILE("test_tb_parser.tb.txt") to hardcode path "demo01/ui_resources/test_tb_parser.tb.txt"
+
+* tb_config.h - changed TB_FILE_WINDOWS for windows
+
+-----------------------------------------------------------------------------------
 Turbo Badger - Fast UI toolkit for hardware accelerated games & applications.
 -----------------------------------------------------------------------------------
 
