@@ -284,8 +284,8 @@ void TUIRendererBatcher::GetBatches(PODVector<UIBatch>& batches, PODVector<float
     {
         // get batch
         UIBatch &batch     = batches_[ i ];
-        unsigned beg       = batches_[ i ].vertexStart_;
-        unsigned end       = batches_[ i ].vertexEnd_;
+        unsigned beg       = batch.vertexStart_;
+        unsigned end       = batch.vertexEnd_;
         batch.vertexStart_ = vertexData.Size();
         batch.vertexEnd_   = vertexData.Size() + (end - beg);
 
