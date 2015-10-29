@@ -232,48 +232,9 @@ public:
     static void Destroy();
 
 protected:
-    TBDemo() 
-        : pwindow_( NULL )
-        , pEditWindow_( NULL )
-        , pListWindow_( NULL )
-        , pAdvancedListWindow_( NULL )
-        , pTabContainerWindow_( NULL )
-    {
-    }
-    ~TBDemo() 
-    {
-        if ( pwindow_ )
-        {
-            delete pwindow_;
-            pwindow_ = NULL;
-        }
-        if ( pEditWindow_ )
-        {
-            delete pEditWindow_;
-            pEditWindow_ = NULL;
-        }
-        if ( pListWindow_)
-        {
-            delete pListWindow_;
-            pListWindow_ = NULL;
-        }
-        if ( pAdvancedListWindow_ )
-        {
-            delete pAdvancedListWindow_;
-            pAdvancedListWindow_ = NULL;
-        }
-        if ( pTabContainerWindow_ )
-        {
-            delete pTabContainerWindow_;
-            pTabContainerWindow_ = NULL;
-        }
-    }
+    TBDemo() {}
+    ~TBDemo() {}
 
 protected:
     static TBDemo       *_pSingleton;
-    MainWindow          *pwindow_;
-    EditWindow          *pEditWindow_;
-    ListWindow          *pListWindow_;
-    AdvancedListWindow  *pAdvancedListWindow_;
-    TabContainerWindow  *pTabContainerWindow_;
 };

@@ -85,6 +85,7 @@ TUIRendererBatcher::~TUIRendererBatcher()
 {
     vertexData_.Clear();
     batches_.Clear();
+    uKeytoTBkeyMap.Clear();
 
     TBWidgetsAnimationManager::Shutdown();
 
@@ -437,7 +438,7 @@ void TUIRendererBatcher::HandlePostUpdate(StringHash eventType, VariantMap& even
 {
     BeginPaint( root_.GetRect().w, root_.GetRect().h );
 
-	root_.InvokePaint( TBWidget::PaintProps() );
+    root_.InvokePaint( TBWidget::PaintProps() );
 
     // If animations are running, reinvalidate immediately
     if ( TBAnimationManager::HasAnimationsRunning() )
@@ -555,7 +556,7 @@ public:
         pfile_ = new File( _pContext );
     }
 
-	virtual ~UTBFile() 
+    virtual ~UTBFile() 
     { 
         if ( pfile_ )
         {

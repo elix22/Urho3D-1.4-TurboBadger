@@ -1139,15 +1139,15 @@ void TBDemo::Init()
 	// Give the first item a skin image
 	popup_menu_source.GetItem(0)->SetSkinImage(TBIDC("Icon16"));
 
-	_pSingleton->pwindow_ = new MainWindow( &TUIRendererBatcher::Singleton().Root() );
-    
-	_pSingleton->pEditWindow_ = new EditWindow( &TUIRendererBatcher::Singleton().Root() );
-    
-	_pSingleton->pListWindow_ = new ListWindow( &TUIRendererBatcher::Singleton().Root(), &name_source );
-    
-	_pSingleton->pAdvancedListWindow_ = new AdvancedListWindow(&TUIRendererBatcher::Singleton().Root(), &advanced_source);
-    
-	_pSingleton->pTabContainerWindow_ = new TabContainerWindow(&TUIRendererBatcher::Singleton().Root());
+    new MainWindow( &TUIRendererBatcher::Singleton().Root() );
+
+    new EditWindow( &TUIRendererBatcher::Singleton().Root() );
+
+    new ListWindow( &TUIRendererBatcher::Singleton().Root(), &name_source );
+
+    new AdvancedListWindow( &TUIRendererBatcher::Singleton().Root(), &advanced_source );
+
+    new TabContainerWindow( &TUIRendererBatcher::Singleton().Root() );
 
 	if ( num_failed_tests )
 	{

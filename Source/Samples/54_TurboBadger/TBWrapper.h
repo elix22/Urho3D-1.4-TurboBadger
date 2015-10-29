@@ -63,6 +63,7 @@ public:
     {
         if ( pSingleton_ )
         {
+            pSingleton_->Remove();
             pSingleton_ = NULL;
         }
     }
