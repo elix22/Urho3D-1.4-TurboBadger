@@ -121,6 +121,7 @@ protected:
     void HandleMouseWheel(StringHash eventType, VariantMap& eventData);
     void HandleKeyDown(StringHash eventType, VariantMap& eventData);
     void HandleKeyUp(StringHash eventType, VariantMap& eventData);
+    void HandleTextInput(StringHash eventType, VariantMap& eventData);
 
     // TB special and quality keys func
     int FindTBKey(int _ikey)

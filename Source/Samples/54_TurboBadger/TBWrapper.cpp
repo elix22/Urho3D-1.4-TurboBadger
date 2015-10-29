@@ -400,6 +400,7 @@ void TUIRendererBatcher::RegisterHandlers()
     SubscribeToEvent(E_MOUSEWHEEL, HANDLER(TUIRendererBatcher, HandleMouseWheel));
     SubscribeToEvent(E_KEYDOWN, HANDLER(TUIRendererBatcher, HandleKeyDown));
     SubscribeToEvent(E_KEYUP, HANDLER(TUIRendererBatcher, HandleKeyUp));
+    SubscribeToEvent(E_TEXTINPUT, HANDLER(TUIRendererBatcher, HandleTextInput));
 }
 
 //=============================================================================
@@ -527,6 +528,12 @@ void TUIRendererBatcher::HandleKeyDown(StringHash eventType, VariantMap& eventDa
     MODIFIER_KEYS modKey = (MODIFIER_KEYS)FindTBKey( qualifiers + QAL_VAL );
     SPECIAL_KEY spKey = (SPECIAL_KEY)FindTBKey( key );
 
+    // exit if not a special key
+    if ( spKey == TB_KEY_UNDEFINED )
+    {
+        return;
+    }
+
     root_.InvokeKey( key, spKey, modKey, true );
 }
 
@@ -543,6 +550,22 @@ void TUIRendererBatcher::HandleKeyUp(StringHash eventType, VariantMap& eventData
     SPECIAL_KEY spKey = (SPECIAL_KEY)FindTBKey( key );
 
     root_.InvokeKey( key, spKey, modKey, false );
+}
+
+//=============================================================================
+//=============================================================================
+void TUIRendererBatcher::HandleTextInput(StringHash eventType, VariantMap& eventData)
+{
+    using namespace TextInput;
+
+    int mouseButtons = eventData[P_BUTTONS].GetInt();
+    int qualifiers = eventData[P_QUALIFIERS].GetInt();
+    String str = eventData[ P_TEXT ].GetString();
+    int key = (int)str.CString()[ 0 ];
+    MODIFIER_KEYS modKey = (MODIFIER_KEYS)FindTBKey( qualifiers + QAL_VAL );
+    SPECIAL_KEY spKey = TB_KEY_UNDEFINED;
+
+    root_.InvokeKey( key, spKey, modKey, true );
 }
 
 //=============================================================================
