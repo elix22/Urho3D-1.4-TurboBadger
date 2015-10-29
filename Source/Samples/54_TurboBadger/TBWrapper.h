@@ -63,7 +63,6 @@ public:
     {
         if ( pSingleton_ )
         {
-            //delete pSingleton_;
             pSingleton_ = NULL;
         }
     }
@@ -121,6 +120,19 @@ protected:
     void HandleMouseWheel(StringHash eventType, VariantMap& eventData);
     void HandleKeyDown(StringHash eventType, VariantMap& eventData);
     void HandleKeyUp(StringHash eventType, VariantMap& eventData);
+
+    // TB special and quality keys func
+    int FindTBKey(int _ikey)
+    {
+        HashMap<int, int>::Iterator itr = uKeytoTBkeyMap.Find( _ikey );
+        int itbkey = 0;
+
+        if ( itr != uKeytoTBkeyMap.End() )
+        {
+            itbkey = itr->second_;
+        }
+        return itbkey;
+    }
 
 protected:
     static TUIRendererBatcher   *pSingleton_;

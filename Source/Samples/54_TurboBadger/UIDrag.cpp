@@ -22,14 +22,6 @@
 
 #include <Urho3D/Urho3D.h>
 
-#include <Urho3D/UI/Button.h>
-#include <Urho3D/Core/CoreEvents.h>
-#include <Urho3D/UI/Font.h>
-#include <Urho3D/UI/Text.h>
-#include <Urho3D/UI/UIEvents.h>
-#include <Urho3D/Graphics/VertexBuffer.h>
-#include <Urho3D/Graphics/Texture2D.h>
-
 #include "UIDrag.h"
 #include "TBWrapper.h"
 #include "TBDemo.h"

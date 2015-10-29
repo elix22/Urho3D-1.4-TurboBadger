@@ -32,6 +32,10 @@
 
 //=============================================================================
 //=============================================================================
+#define QAL_VAL         0x60000000 // value to offset quality keys from all other keys in the same hash map
+
+//=============================================================================
+//=============================================================================
 TUIRendererBatcher* TUIRendererBatcher::pSingleton_ = NULL;
 
 //=============================================================================
@@ -44,8 +48,7 @@ UTBBitmap::UTBBitmap(Context *_pContext, int _width, int _height)
 {
     texture_ = new Texture2D( context_ );
 
-    // tb_renderer_gl.cpp sets texture in this format:
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_w, m_h, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    // set texture format
     texture_->SetMipsToSkip( QUALITY_LOW, 0 );
     texture_->SetNumLevels( 1 );
     texture_->SetSize( width_, height_, Graphics::GetRGBAFormat() );
@@ -74,9 +77,6 @@ TUIRendererBatcher::TUIRendererBatcher(Context *_pContext, int _iwidth, int _ihe
 {
     SetPosition( 0, 0 );
     OnResizeWin( _iwidth, _iheight );
-
-    m_translation_x = 0;
-    m_translation_y = 0;
 }
 
 //=============================================================================
@@ -96,13 +96,12 @@ TUIRendererBatcher::~TUIRendererBatcher()
 //=============================================================================
 void TUIRendererBatcher::OnResizeWin(int _iwidth, int _iheight)
 {
-    SetSize( _iwidth, _iheight );
-
     m_screen_rect.x = 0;
     m_screen_rect.y = 0;
     m_screen_rect.w = _iwidth;
     m_screen_rect.h = _iheight;
 
+    SetSize( _iwidth, _iheight );
     root_.SetRect( m_screen_rect );
 }
 
@@ -206,7 +205,7 @@ void TUIRendererBatcher::CreateKeyMap()
     uKeytoTBkeyMap.Insert( Pair<int,int>( KEY_BACKSPACE, TB_KEY_BACKSPACE ) );
     uKeytoTBkeyMap.Insert( Pair<int,int>( KEY_INSERT   , TB_KEY_INSERT    ) );
     uKeytoTBkeyMap.Insert( Pair<int,int>( KEY_DELETE   , TB_KEY_DELETE    ) );
-    uKeytoTBkeyMap.Insert( Pair<int,int>( KEY_RETURN   , TB_KEY_ENTER     ) ); // this could be wrong
+    uKeytoTBkeyMap.Insert( Pair<int,int>( KEY_RETURN   , TB_KEY_ENTER     ) );
     uKeytoTBkeyMap.Insert( Pair<int,int>( KEY_ESC      , TB_KEY_ESC       ) );
     uKeytoTBkeyMap.Insert( Pair<int,int>( KEY_F1       , TB_KEY_F1        ) );
     uKeytoTBkeyMap.Insert( Pair<int,int>( KEY_F2       , TB_KEY_F2        ) );
@@ -221,11 +220,11 @@ void TUIRendererBatcher::CreateKeyMap()
     uKeytoTBkeyMap.Insert( Pair<int,int>( KEY_F11      , TB_KEY_F11       ) );
     uKeytoTBkeyMap.Insert( Pair<int,int>( KEY_F12      , TB_KEY_F12       ) );
 
-    // qualifiers: keys on urho3d (from SDL) goes up to a little over 0x40000000 and 0x60000000 value is to go beyond that range (excessive, i know ;)
-    uKeytoTBkeyMap.Insert( Pair<int,int>( QUAL_SHIFT + 0x60000000, TB_SHIFT ) );
-    uKeytoTBkeyMap.Insert( Pair<int,int>( QUAL_CTRL  + 0x60000000, TB_CTRL  ) );
-    uKeytoTBkeyMap.Insert( Pair<int,int>( QUAL_ALT   + 0x60000000, TB_ALT   ) );
-    uKeytoTBkeyMap.Insert( Pair<int,int>( QUAL_ANY   + 0x60000000, TB_SUPER ) );
+    // qualifiers: add QAL_VAL to qual keys to separate their range from rest of the keys
+    uKeytoTBkeyMap.Insert( Pair<int,int>( QUAL_SHIFT + QAL_VAL, TB_SHIFT ) );
+    uKeytoTBkeyMap.Insert( Pair<int,int>( QUAL_CTRL  + QAL_VAL, TB_CTRL  ) );
+    uKeytoTBkeyMap.Insert( Pair<int,int>( QUAL_ALT   + QAL_VAL, TB_ALT   ) );
+    uKeytoTBkeyMap.Insert( Pair<int,int>( QUAL_ANY   + QAL_VAL, TB_SUPER ) );
 }
 
 //=============================================================================
@@ -427,9 +426,9 @@ void TUIRendererBatcher::HandleScreenMode(StringHash eventType, VariantMap& even
 //=============================================================================
 void TUIRendererBatcher::HandleBeginFrame(StringHash eventType, VariantMap& eventData)
 {
-	TBAnimationManager::Update();
-	root_.InvokeProcessStates();
-	root_.InvokeProcess();
+    TBAnimationManager::Update();
+    root_.InvokeProcessStates();
+    root_.InvokeProcess();
 }
 
 //=============================================================================
@@ -440,10 +439,10 @@ void TUIRendererBatcher::HandlePostUpdate(StringHash eventType, VariantMap& even
 
 	root_.InvokePaint( TBWidget::PaintProps() );
 
-	// If animations are running, reinvalidate immediately
-	if ( TBAnimationManager::HasAnimationsRunning() )
+    // If animations are running, reinvalidate immediately
+    if ( TBAnimationManager::HasAnimationsRunning() )
     {
-		root_.Invalidate();
+        root_.Invalidate();
     }
 }
 
@@ -462,19 +461,12 @@ void TUIRendererBatcher::HandleMouseButtonDown(StringHash eventType, VariantMap&
 
     int mouseButtons = eventData[P_BUTTONS].GetInt();
     int qualifiers = eventData[P_QUALIFIERS].GetInt();
-    MODIFIER_KEYS modKey = TB_MODIFIER_NONE;
+    MODIFIER_KEYS modKey = (MODIFIER_KEYS)FindTBKey( qualifiers + QAL_VAL );
 
     // exit if not the left mb
     if ( mouseButtons != MOUSEB_LEFT )
     {
         return;
-    }
-
-    HashMap<int, int>::Iterator k = uKeytoTBkeyMap.Find(qualifiers + 0x60000000);
-
-    if ( k != uKeytoTBkeyMap.End() )
-    {
-        modKey = (MODIFIER_KEYS)k->second_;
     }
 
     root_.InvokePointerDown( lastMousePos_.x_, lastMousePos_.y_, 1, modKey, false );
@@ -488,14 +480,7 @@ void TUIRendererBatcher::HandleMouseButtonUp(StringHash eventType, VariantMap& e
 
     int mouseButtons = eventData[P_BUTTONS].GetInt();
     int qualifiers = eventData[P_QUALIFIERS].GetInt();
-    MODIFIER_KEYS modKey = TB_MODIFIER_NONE;
-
-    HashMap<int, int>::Iterator k = uKeytoTBkeyMap.Find( qualifiers + 0x60000000 );
-
-    if ( k != uKeytoTBkeyMap.End() )
-    {
-        modKey = (MODIFIER_KEYS)k->second_;
-    }
+    MODIFIER_KEYS modKey = (MODIFIER_KEYS)FindTBKey( qualifiers + QAL_VAL );
 
     root_.InvokePointerUp( lastMousePos_.x_, lastMousePos_.y_, modKey, false );
 }
@@ -508,16 +493,9 @@ void TUIRendererBatcher::HandleMouseMove(StringHash eventType, VariantMap& event
 
     int mouseButtons = eventData[P_BUTTONS].GetInt();
     int qualifiers = eventData[P_QUALIFIERS].GetInt();
-    MODIFIER_KEYS modKey = TB_MODIFIER_NONE;
+    MODIFIER_KEYS modKey = (MODIFIER_KEYS)FindTBKey( qualifiers + QAL_VAL );
 
-    HashMap<int, int>::Iterator k = uKeytoTBkeyMap.Find( qualifiers + 0x60000000 );
-
-    if ( k != uKeytoTBkeyMap.End() )
-    {
-        modKey = (MODIFIER_KEYS)k->second_;
-    }
-
-    lastMousePos_ = IntVector2(eventData[P_X].GetInt(), eventData[P_Y].GetInt());
+    lastMousePos_ = IntVector2( eventData[P_X].GetInt(), eventData[P_Y].GetInt() );
 
     root_.InvokePointerMove( lastMousePos_.x_, lastMousePos_.y_, modKey, false );
 }
@@ -531,16 +509,9 @@ void TUIRendererBatcher::HandleMouseWheel(StringHash eventType, VariantMap& even
     int mouseButtons = eventData[P_BUTTONS].GetInt();
     int qualifiers = eventData[P_QUALIFIERS].GetInt();
     int delta = eventData[P_WHEEL].GetInt();
-    MODIFIER_KEYS modKey = TB_MODIFIER_NONE;
+    MODIFIER_KEYS modKey = (MODIFIER_KEYS)FindTBKey( qualifiers + QAL_VAL );
 
-    HashMap<int, int>::Iterator k = uKeytoTBkeyMap.Find( qualifiers + 0x60000000 );
-
-    if ( k != uKeytoTBkeyMap.End() )
-    {
-        modKey = (MODIFIER_KEYS)k->second_;
-    }
-
-	root_.InvokeWheel(lastMousePos_.x_, lastMousePos_.y_, 0, -delta, modKey );
+    root_.InvokeWheel( lastMousePos_.x_, lastMousePos_.y_, 0, -delta, modKey );
 }
 
 //=============================================================================
@@ -552,22 +523,8 @@ void TUIRendererBatcher::HandleKeyDown(StringHash eventType, VariantMap& eventDa
     int mouseButtons = eventData[P_BUTTONS].GetInt();
     int qualifiers = eventData[P_QUALIFIERS].GetInt();
     int key = eventData[P_KEY].GetInt();
-    MODIFIER_KEYS modKey = TB_MODIFIER_NONE;
-    SPECIAL_KEY spKey = TB_KEY_UNDEFINED;
-
-    HashMap<int, int>::Iterator k = uKeytoTBkeyMap.Find( qualifiers + 0x60000000 );
-
-    if ( k != uKeytoTBkeyMap.End() )
-    {
-        modKey = (MODIFIER_KEYS)k->second_;
-    }
-
-    k = uKeytoTBkeyMap.Find( key );
-
-    if ( k != uKeytoTBkeyMap.End() )
-    {
-        spKey = (SPECIAL_KEY)k->second_;
-    }
+    MODIFIER_KEYS modKey = (MODIFIER_KEYS)FindTBKey( qualifiers + QAL_VAL );
+    SPECIAL_KEY spKey = (SPECIAL_KEY)FindTBKey( key );
 
     root_.InvokeKey( key, spKey, modKey, true );
 }
@@ -581,22 +538,8 @@ void TUIRendererBatcher::HandleKeyUp(StringHash eventType, VariantMap& eventData
     int mouseButtons = eventData[P_BUTTONS].GetInt();
     int qualifiers = eventData[P_QUALIFIERS].GetInt();
     int key = eventData[P_KEY].GetInt();
-    MODIFIER_KEYS modKey = TB_MODIFIER_NONE;
-    SPECIAL_KEY spKey = TB_KEY_UNDEFINED;
-
-    HashMap<int, int>::Iterator k = uKeytoTBkeyMap.Find( qualifiers + 0x60000000 );
-
-    if ( k != uKeytoTBkeyMap.End() )
-    {
-        modKey = (MODIFIER_KEYS)k->second_;
-    }
-
-    k = uKeytoTBkeyMap.Find( key );
-
-    if ( k != uKeytoTBkeyMap.End() )
-    {
-        spKey = (SPECIAL_KEY)k->second_;
-    }
+    MODIFIER_KEYS modKey = (MODIFIER_KEYS)FindTBKey( qualifiers + QAL_VAL );
+    SPECIAL_KEY spKey = (SPECIAL_KEY)FindTBKey( key );
 
     root_.InvokeKey( key, spKey, modKey, false );
 }
@@ -606,11 +549,12 @@ void TUIRendererBatcher::HandleKeyUp(StringHash eventType, VariantMap& eventData
 class UTBFile : public TBFile
 {
 public:
-	UTBFile(Context *_pContext) 
+    UTBFile(Context *_pContext) 
         : ufileSize_( 0 )
     {
         pfile_ = new File( _pContext );
     }
+
 	virtual ~UTBFile() 
     { 
         if ( pfile_ )
@@ -633,18 +577,18 @@ public:
         return bopen;
     }
 
-	virtual long Size()
-	{
+    virtual long Size()
+    {
         return (long)ufileSize_;
-	}
+    }
 
-	virtual size_t Read(void *buf, size_t elemSize, size_t count)
-	{
-		return pfile_->Read( buf, elemSize * count );
-	}
+    virtual size_t Read(void *buf, size_t elemSize, size_t count)
+    {
+        return pfile_->Read( buf, elemSize * count );
+    }
 
 protected:
-	SharedPtr<File> pfile_;
+    SharedPtr<File> pfile_;
     unsigned ufileSize_;
 };
 
@@ -662,5 +606,5 @@ TBFile* TBFile::Open(const char *filename, TBFileMode )
         pFile = NULL;
     }
 
-	return pFile;
+    return pFile;
 }
